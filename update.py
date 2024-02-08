@@ -50,6 +50,9 @@ def get_latest_user_agents():
             ''.join((base_url, browser)),
             headers={'User-Agent': random.choice(get_saved_user_agents())},
         )
+        if response.status_code >= 400:
+            print(response.text)
+            response.raise_for_status()
 
         elems = html.fromstring(response.text).cssselect('td li span.code')
 
@@ -94,8 +97,15 @@ def update_files_on_github(new_user_agents_json):
 
 
 if __name__ == '__main__':
-    old_user_agents_json = json_dump(get_saved_user_agents())
-    new_user_agents_json = json_dump(get_latest_user_agents())
+    old_user_agents = get_saved_user_agents()
+    old_user_agents_json = json_dump(old_user_agents)
+    print(f'old_user_agents = {old_user_agents_json}')
+    assert len(old_user_agents) >= 4
+
+    new_user_agents = get_latest_user_agents()
+    new_user_agents_json = json_dump(new_user_agents)
+    print(f'new_user_agents = {new_user_agents_json}')
+    assert len(new_user_agents) >= 4
 
     if old_user_agents_json != new_user_agents_json:
         update_files_on_github(new_user_agents_json)
